@@ -1,0 +1,27 @@
+[33mcommit 088374b6679acfa9fecb587118ffbe7d093b57bb[m
+Author: Joaquin Corbi <joakin_24_@hotmail.com>
+Date:   Wed Sep 17 20:23:58 2014 +0200
+
+    Preparada la aplicacion
+    
+    Modificadas las rutas de redireccion
+
+[33mcommit 25669650ef3ea5c8a110f6641ad526bc75274c89[m
+Author: Joaquin Corbi <joakin_24_@hotmail.com>
+Date:   Thu Sep 11 12:31:00 2014 +0200
+
+    Añadido pendiente subir la app a Heroku
+
+[33mcommit 0841ef719f3134318a5539f6ded3f3c0241a00eb[m
+Author: Joaquin Corbi <joakin_24_@hotmail.com>
+Date:   Thu Sep 11 12:24:33 2014 +0200
+
+    Añadido el fichero README.md
+
+[33mcommit 9b1e98334f08144d7c423521258131e24c6e4b54[m
+Author: Joaquin Corbi <joakin_24_@hotmail.com>
+Date:   Thu Sep 11 12:13:31 2014 +0200
+
+    Version inicial
+    
+    Añadidos todos los ficheros del proyecto
