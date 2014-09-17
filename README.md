@@ -1,5 +1,7 @@
 # Play todolist
 
-Una app de prueba
+Una sencilla aplicación play dearrollada en las prácticas de la asignatura Metodologías Ágiles de Desarrollo del Software de la Universidad de Alicante
 
-Pendiente de subir a Heroku
+## Heroku
+
+Puedes probar el despliegue en Heroku pulsando en [este enlace](http://polar-atoll-9211.herokuapp.com/tasks)
