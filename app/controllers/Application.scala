@@ -58,13 +58,13 @@ object Application extends Controller {
 	 * @return json tarea en concreto en formato json
 	 */
 	def showTask(id: Long) = Action {
-		val json = Json.toJson(Task.findById(id))
-
-		if(json != null) {
+		try {
+			val json = Json.toJson(Task.findById(id).head)
+		
   			Ok(json)
   		}
-  		else {
-  			NotFound("Error: No se encuentra la tarea")
+  		catch {
+  			case e : NoSuchElementException => NotFound("Error: No se encuentra la tarea")
   		}
 	}
   
@@ -77,25 +77,26 @@ object Application extends Controller {
 			errors => BadRequest(views.html.index(Task.all(), errors)),
 			label =>
 			{
-				val newTask = Task.create(label)
+				val id = Task.create(label)
 
-				Home
+				Ok(Json.toJson(Task.findById(id).head))
 			}
 		)
 	}
    
    /**
     * Controla el borrado de una tarea
+    * @param id Identificador de la tarea a eliminar
     */
 	def deleteTask(id: Long) = Action {
 		try {
-			val task = Task.findById(id)
+			val task = Task.findById(id).head
+
+			Task.delete(id)
+			Home
 		}
 		catch {
-			case e: Exception => NotFound("Error: No se encuentra la tarea")
+			case e: NoSuchElementException => NotFound("Error: No se encuentra la tarea")
 		}
-
-		Task.delete(id)
-		Home
 	}
 }

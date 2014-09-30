@@ -9,6 +9,9 @@ case class Task(id: Long, label: String)
 
 object Task
 {  
+   /**
+    * Atributos de la clase tarea
+    */
 	val task = {
 		get[Long]("id") ~ 
 		get[String]("label") map {
@@ -37,12 +40,13 @@ object Task
  	 * Inserta una nueva tarea
  	 * @param label La nueva tarea a insertar
  	 */
-	def create(label: String) {
+	def create(label: String) : Long = {
+      var idNuevo = 0L
 		DB.withConnection { implicit c =>
-			//val idNuevo = SQL("insert into task (label) values ({label})").on('label -> label).executeInsertion().get
-
-         SQL("insert into task (label) values ({label})").on('label -> label).executeUpdate()
+          idNuevo = SQL("insert into task (label) values ({label})").on('label -> label).executeInsert().get
 		}
+
+      return idNuevo
 	}
 
 	/**
