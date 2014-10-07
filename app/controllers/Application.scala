@@ -7,6 +7,7 @@ import play.api.data.Forms._
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
 import models.Task
+import models.TaskUser
 
 /**
  * Maneja el control de la base de datos de tareas
@@ -25,32 +26,26 @@ object Application extends Controller {
 	val taskForm = Form("label" -> nonEmptyText)
 
 	/**
-	 * Variable para parsear una tarea a JSON
+	 * Nombre del usuario por defecto
 	 */
-	implicit val taskWrites = new Writes[Task] {
-  		def writes(task: Task) = Json.obj(
-    		"id" -> task.id,
-    		"label" -> task.label
-  		)
-	}
+	val defaultUser : String = "anonimo"
 
 
-// -- Acciones
+// -- Acciones Feature1
 
 	/**
 	 * Controla la peticion por defecto
 	 */
 	def index = Action { Home }
 
+
 	/**
 	 * Muestra todas las tareas
 	 * @return json lista de tareas en formato json
 	 */
  	def tasks = Action {
-		//Ok(views.html.index(Task.all(), taskForm))
-
-		val json = Json.toJson(Task.all)
-  		Ok(json)
+	 //Ok(views.html.index(Task.all(), taskForm))
+  		Ok(Json.toJson(Task.allByUser(defaultUser)))
 	}
 
 	/**
@@ -58,14 +53,10 @@ object Application extends Controller {
 	 * @return json tarea en concreto en formato json
 	 */
 	def showTask(id: Long) = Action {
-		try {
-			val json = Json.toJson(Task.findById(id).head)
-		
-  			Ok(json)
-  		}
-  		catch {
-  			case e : NoSuchElementException => NotFound("Error: No se encuentra la tarea")
-  		}
+		Task.findById(id) match {
+			case None => NotFound("Error: No se encuentra la tarea")
+			case Some(t) => Ok(Json.toJson(t))
+		}
 	}
   
    /**
@@ -74,12 +65,12 @@ object Application extends Controller {
     */
 	def newTask = Action {
 		implicit request => taskForm.bindFromRequest.fold(
-			errors => BadRequest(views.html.index(Task.all(), errors)),
+			errors => BadRequest(views.html.index(Task.allByUser(defaultUser), errors)),
 			label =>
 			{
-				val id = Task.create(label)
+				val id = Task.create(defaultUser, label)
 
-				Ok(Json.toJson(Task.findById(id).head))
+				Created(Json.toJson(Task.findById(id)))
 			}
 		)
 	}
@@ -89,14 +80,40 @@ object Application extends Controller {
     * @param id Identificador de la tarea a eliminar
     */
 	def deleteTask(id: Long) = Action {
-		try {
-			val task = Task.findById(id).head
+		Task.findById(id) match {
+			case None => NotFound("Error: No se encuentra la tarea")
+			case Some(t) => Task.delete(id)
+								 Ok("La tarea ha sido borrada")
+		}
+	}
 
-			Task.delete(id)
-			Home
+
+// -- Acciones Feature2
+
+	def userTasks(login: String) = Action {
+		if(TaskUser.findByName(login)) {
+			Ok(Json.toJson(Task.allByUser(login)))
 		}
-		catch {
-			case e: NoSuchElementException => NotFound("Error: No se encuentra la tarea")
+		else {
+			NotFound("Error: No existe el usuario")
 		}
+	}
+
+	def userNewTask(login: String) = Action {
+		implicit request => taskForm.bindFromRequest.fold(
+			errors => BadRequest(views.html.index(Task.allByUser(login), errors)),
+			label =>
+			{
+				if(TaskUser.findByName(login)) {
+
+					val id = Task.create(login, label)
+
+					Ok(Json.toJson(Task.findById(id)))
+				}
+				else {
+					NotFound("Error: No existe el usuario")
+				}
+			}
+		)
 	}
 }
