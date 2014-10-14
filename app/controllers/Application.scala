@@ -2,10 +2,17 @@ package controllers
 
 import play.api._
 import play.api.mvc._
+
 import play.api.data._
 import play.api.data.Forms._
+
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
+
+import java.util.Calendar
+import java.text.SimpleDateFormat
+import java.util.{Date}
+
 import models.Task
 import models.TaskUser
 
@@ -23,7 +30,15 @@ object Application extends Controller {
 	/**
 	 * Especifica el formulario de tareas
 	 */
-	val taskForm = Form("label" -> nonEmptyText)
+	val taskForm = Form(
+		mapping (
+			"id" -> ignored(0L),
+			"label" -> nonEmptyText,
+			"usuario" -> ignored(""),
+			"date" -> optional(date("yyyy.MM.dd"))
+		)(Task.apply)(Task.unapply)
+	)
+
 
 	/**
 	 * Nombre del usuario por defecto
@@ -40,8 +55,8 @@ object Application extends Controller {
 
 
 	/**
-	 * Muestra todas las tareas
-	 * @return json lista de tareas en formato json
+	 * Muestra todas las tareas del usuario por defecto "anonimo"
+	 * @return Lista de tareas en formato json
 	 */
  	def tasks = Action {
 	 //Ok(views.html.index(Task.all(), taskForm))
@@ -50,7 +65,8 @@ object Application extends Controller {
 
 	/**
 	 * Muestra una tarea en concreto
-	 * @return json tarea en concreto en formato json
+	 * @param id Identificador de la tarea a buscar
+	 * @return Tarea en concreto en formato json
 	 */
 	def showTask(id: Long) = Action {
 		Task.findById(id) match {
@@ -60,15 +76,15 @@ object Application extends Controller {
 	}
   
    /**
-    * Controla la insercion de una nueva tarea
-    * @return json tarea recien creada en formato json
+    * Controla la insercion de una nueva tarea, utilizando el usuario y una fecha opcional
+    * @return Tarea recien creada en formato json
     */
 	def newTask = Action {
 		implicit request => taskForm.bindFromRequest.fold(
-			errors => BadRequest(views.html.index(Task.allByUser(defaultUser), errors)),
-			label =>
+			errors => BadRequest,
+			data =>
 			{
-				val id = Task.create(defaultUser, label)
+				val id = Task.create(defaultUser, data.label, data.fecha)
 
 				Created(Json.toJson(Task.findById(id)))
 			}
@@ -78,6 +94,7 @@ object Application extends Controller {
    /**
     * Controla el borrado de una tarea
     * @param id Identificador de la tarea a eliminar
+    * @return Ok or NotFound dependiendo del proceso
     */
 	def deleteTask(id: Long) = Action {
 		Task.findById(id) match {
@@ -90,6 +107,11 @@ object Application extends Controller {
 
 // -- Acciones Feature2
 
+	/**
+	 * Muestra las tareas de un usuario en concreto
+	 * @param login El nombre del usuario
+	 * @return Todas las tareas guardadas del usuario
+	 */
 	def userTasks(login: String) = Action {
 		if(TaskUser.findByName(login)) {
 			Ok(Json.toJson(Task.allByUser(login)))
@@ -99,14 +121,19 @@ object Application extends Controller {
 		}
 	}
 
+	/**
+	 * Introduce una tarea para un determinado usuario añadiendo opcionalmente la fecha
+	 * @param login Nombre del usuario que introduce la tarea
+	 * @return La tarea ya creada
+	 */
 	def userNewTask(login: String) = Action {
 		implicit request => taskForm.bindFromRequest.fold(
-			errors => BadRequest(views.html.index(Task.allByUser(login), errors)),
-			label =>
+			errors => BadRequest,
+			data =>
 			{
 				if(TaskUser.findByName(login)) {
 
-					val id = Task.create(login, label)
+					val id = Task.create(login, data.label, data.fecha)
 
 					Ok(Json.toJson(Task.findById(id)))
 				}
