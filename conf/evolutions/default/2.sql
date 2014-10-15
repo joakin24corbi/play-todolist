@@ -17,5 +17,7 @@ INSERT INTO taskUser (id,name) values (3, 'joaqui');
  
 # --- !Downs
 
+DELETE FROM taskUser;
+
 DROP TABLE taskUser;
 DROP SEQUENCE taskUser_id_seq;
