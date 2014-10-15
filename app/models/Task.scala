@@ -16,29 +16,38 @@ case class Task(id: Long, label: String, usuario: String, fecha: Option[Date])
 
 object Task
 {  
-   /**
-    * Atributos de la clase tarea
-    */
-	val task = {
-		get[Long]("id") ~ 
-		get[String]("label") ~
-      get[String]("usuario") ~
-      get[Option[Date]]("fecha") map {
-			case id~label~usuario~fecha => Task(id, label, usuario, fecha)
-  		}
-	}
+  /**
+   * Atributos de la clase tarea
+   */
+  val task = {
+    get[Long]("id") ~ 
+    get[String]("label") ~
+    get[String]("usuario") ~
+    get[Option[Date]]("fecha") map {
+      case id~label~usuario~fecha => Task(id, label, usuario, fecha)
+    }
+  }
 
-   /**
-    * Variable para parsear una tarea a JSON
-    */
-   implicit val taskWrites = new Writes[Task] {
-      def writes(task: Task) = Json.obj(
-         "id" -> task.id,
-         "label" -> task.label,
-         "usuario" -> task.usuario,
-         "fecha" -> task.fecha
-      )
-   }
+  /**
+   * Variable para parsear una tarea a JSON
+   */
+  implicit val taskWrites = new Writes[Task] {
+    def writes(task: Task) = Json.obj(
+      "id" -> task.id,
+      "label" -> task.label,
+      "usuario" -> task.usuario,
+      "fecha" -> formatDate(task.fecha)
+    )
+  }
+
+  def formatDate(date: Option[Date]) : Option[String] = {
+    val formatter = new SimpleDateFormat("yyyy.MM.dd")
+
+    date match {
+      case None => None
+      case Some(f) => Option(formatter.format(f))
+    }
+  }
 
    /**
     * Inserta una nueva tarea
