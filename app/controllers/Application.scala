@@ -9,7 +9,6 @@ import play.api.data.Forms._
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
 
-import java.util.Calendar
 import java.text.SimpleDateFormat
 import java.util.{Date}
 
@@ -56,17 +55,16 @@ object Application extends Controller {
 
 	/**
 	 * Muestra todas las tareas del usuario por defecto "anonimo"
-	 * @return Lista de tareas en formato json
+	 * @return Lista de tareas en formato JSON
 	 */
  	def tasks = Action {
-	 //Ok(views.html.index(Task.all(), taskForm))
   		Ok(Json.toJson(Task.allByUser(defaultUser)))
 	}
 
 	/**
 	 * Muestra una tarea en concreto
 	 * @param id Identificador de la tarea a buscar
-	 * @return Tarea en concreto en formato json
+	 * @return Tarea en concreto en formato JSON
 	 */
 	def showTask(id: Long) = Action {
 		Task.findById(id) match {
@@ -77,7 +75,7 @@ object Application extends Controller {
   
    /**
     * Controla la insercion de una nueva tarea, utilizando el usuario y una fecha opcional
-    * @return Tarea recien creada en formato json
+    * @return Tarea recien creada en formato JSON
     */
 	def newTask = Action {
 		implicit request => taskForm.bindFromRequest.fold(
@@ -110,7 +108,7 @@ object Application extends Controller {
 	/**
 	 * Muestra las tareas de un usuario en concreto
 	 * @param login El nombre del usuario
-	 * @return Todas las tareas guardadas del usuario
+	 * @return Todas las tareas guardadas del usuario en formato JSON
 	 */
 	def userTasks(login: String) = Action {
 		if(TaskUser.findByName(login)) {
@@ -124,7 +122,7 @@ object Application extends Controller {
 	/**
 	 * Introduce una tarea para un determinado usuario añadiendo opcionalmente la fecha
 	 * @param login Nombre del usuario que introduce la tarea
-	 * @return La tarea ya creada
+	 * @return La tarea ya creada en formato JSON
 	 */
 	def userNewTask(login: String) = Action {
 		implicit request => taskForm.bindFromRequest.fold(
@@ -142,5 +140,57 @@ object Application extends Controller {
 				}
 			}
 		)
+	}
+
+
+// -- Acciones Feature3
+
+	/**
+	 * Busca todas las tareas en una determinada fecha
+	 * @param login Usuario del que se buscan las tareas
+	 * @param date Fecha de la que se buscan tareas
+	 * @return Lista de tareas del usuario en el dia introducido en formato JSON
+	 */
+	def userTasksByDate(login: String, date: String) = Action {
+		if(TaskUser.findByName(login)) {
+			val formatter = new SimpleDateFormat("yyyy.MM.dd")
+
+			try {
+				val parsedDate = formatter.parse(date)
+				val tasks = Task.allByDate(login, parsedDate)
+
+				Ok(Json.toJson(tasks))
+			}
+			catch {
+				case ex : java.text.ParseException => BadRequest("Error: Formato de fecha")
+			}
+		}
+		else {
+			NotFound("Error: No existe el usuario")
+		}
+	}
+
+	/**
+	 * Busca las tareas posteriores a hoy para el usuario por defecto
+	 * @return Lista de tareas que cumplen el requisito en formato JSON
+	 */
+	def unfinishedTasks : Action[AnyContent] = {
+		unfinishedUserTasks(defaultUser)
+	}
+
+	/**
+	 * Busca las tareas posteriores a hoy para un determinado usuario
+	 * @param login Usuario del que se buscan las tareas
+	 * @return Lista de tareas que cumplen el requisito en formato JSON
+	 */
+	def unfinishedUserTasks(login: String) = Action {
+		if(TaskUser.findByName(login)) {
+			val tasks = Task.pendentTasks(login)
+
+			Ok(Json.toJson(tasks))
+		}
+		else {
+			NotFound("Error: No existe el usuario")
+		}
 	}
 }
