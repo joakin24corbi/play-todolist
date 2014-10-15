@@ -7,16 +7,15 @@ GET     /                           controllers.Application.index
 
 # DefaultTasks          
 GET     /tasks                      controllers.Application.tasks
-GET     /tasks/:id                  controllers.Application.showTask(id: Long)
-GET     /tasks/:date                controllers.Application.tasksTillDate(date: String)
 GET     /tasks/unfinished           controllers.Application.unfinishedTasks
+GET     /tasks/:id                  controllers.Application.showTask(id: Long)
 POST    /tasks                      controllers.Application.newTask
 DELETE  /tasks/:id                  controllers.Application.deleteTask(id: Long)
 
 # UsersTasks
 GET     /:login/tasks               controllers.Application.userTasks(login: String)
-GET     /:login/tasks/:date         controllers.Application.userTasksTillDate(login: String, date: String)
 GET     /:login/tasks/unfinished    controllers.Application.unfinishedUserTasks(login: String)
+GET     /:login/tasks/:date         controllers.Application.userTasksByDate(login: String, date: String)
 POST    /:login/tasks               controllers.Application.userNewTask(login: String)
 
 # Map static resources from the /public folder to the /assets URL path
